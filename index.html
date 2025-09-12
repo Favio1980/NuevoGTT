@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
-  <!-- Meta Pixel Code -->
-  <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1284427306387866');
-    fbq('track', 'PageView');
-  </script>
-  <noscript><img height="1" width="1" style="display:none"
-  src="https://www.facebook.com/tr?id=1284427306387866&ev=PageView&noscript=1"
-  /></noscript>
-  <!-- End Meta Pixel Code -->
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Ases del Norte 2 - Red Verificada</title>
+
+    <!-- Meta Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1284427306387866');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1284427306387866&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
     <style>
       @keyframes pulse {
         0% { transform: scale(1); box-shadow: 0 0 12px #25D366; }
@@ -227,10 +229,8 @@
     <div class="notif" id="notifBox"></div>
 
     <script>
-      // ---- Config editable ----
-      const EVENT_VALUE = 1.00;      // valor del evento (ej: 1500.00)
-      const CURRENCY    = 'ARS';     // código de moneda ISO (ARS o USD)
-      // -------------------------
+      const EVENT_VALUE = 1.00;
+      const CURRENCY    = 'ARS';
 
       const mensajes = [
         "Carla: Super confiable, me abonaron al instante",
@@ -264,7 +264,6 @@
       mostrarNotificacion();
       setInterval(mostrarNotificacion, 2500);
 
-      // Rotación secuencial de WhatsApp
       const numerosWhatsapp = ["5493513424587"];
       const mensaje = "Hola, quiero que me hagas un usuario gratis";
 
@@ -278,20 +277,15 @@
         localStorage.setItem('wa_index', siguiente);
       }
 
-      // 👉 Handler corregido: trackea Contact con value + currency
       document.getElementById('whatsapp-btn').addEventListener('click', function (e) {
         e.preventDefault();
-
-        // (Opcional) eventID para deduplicación si usás CAPI
         const eventId = 'cnt_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
 
-        // Disparo del evento Contact con parámetros válidos
         fbq('track', 'Contact',
           { value: EVENT_VALUE, currency: CURRENCY },
           { eventID: eventId }
         );
 
-        // Abrir WhatsApp
         const index = obtenerIndiceActual();
         const numero = numerosWhatsapp[index];
         const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
