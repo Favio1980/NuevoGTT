@@ -190,6 +190,7 @@
       }
     </style>
   </head>
+
   <body>
     <div class="overlay"></div>
     <div class="container">
@@ -197,11 +198,13 @@
       <h1>¡UNITE A LOS QUE YA ESTÁN GANANDO!</h1>
       <h2>👇🏽 Contáctanos tocando el botón 👇🏽</h2>
       <div class="cta">
+        <!-- ONCLICK inline garantiza la ejecución del handler -->
         <a id="whatsapp-btn"
-          href="#"
-          class="cta-button"
-          target="_blank"
-          rel="noopener noreferrer">
+           href="#"
+           class="cta-button"
+           target="_blank"
+           rel="noopener noreferrer"
+           onclick="return sendContactEvent();">
           <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="whatsapp" />
           JUGAR!
         </a>
@@ -229,9 +232,14 @@
     <div class="notif" id="notifBox"></div>
 
     <script>
-      const EVENT_VALUE = 1.00;
-      const CURRENCY    = 'ARS';
+      // ==== CONFIG EDITABLE ====
+      const EVENT_VALUE = 1.00;         // usar número con punto decimal
+      const CURRENCY    = 'ARS';        // ISO 4217 en mayúsculas
+      const numerosWhatsapp = ["5493513424587"];
+      const mensaje = "Hola, quiero que me hagas un usuario gratis";
+      // =========================
 
+      // ---- Notificaciones demo (sin cambios) ----
       const mensajes = [
         "Carla: Super confiable, me abonaron al instante",
         "Juan: Recomiendo, son gente de confianza",
@@ -248,10 +256,8 @@
         "Fede: El mejor servicio de todos",
         "Flor: Siempre activos, confiables"
       ];
-
       let current = 0;
       const notif = document.getElementById('notifBox');
-
       function mostrarNotificacion() {
         notif.classList.remove('visible');
         setTimeout(() => {
@@ -260,38 +266,80 @@
           current = (current + 1) % mensajes.length;
         }, 500);
       }
-
       mostrarNotificacion();
       setInterval(mostrarNotificacion, 2500);
 
-      const numerosWhatsapp = ["5493513424587"];
-      const mensaje = "Hola, quiero que me hagas un usuario gratis";
-
+      // ---- Rotación secuencial de WhatsApp ----
       function obtenerIndiceActual() {
         let index = localStorage.getItem('wa_index');
         return index ? parseInt(index) : 0;
       }
-
       function guardarSiguienteIndice(index) {
         const siguiente = (index + 1) % numerosWhatsapp.length;
         localStorage.setItem('wa_index', siguiente);
       }
 
-      document.getElementById('whatsapp-btn').addEventListener('click', function (e) {
-        e.preventDefault();
-        const eventId = 'cnt_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+      // ---------- PIXEL: función robusta con fallback ----------
+      function fireContactPixel() {
+        const pixelId = '1284427306387866';
+        const eventId = 'cnt_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+        let usedFbq = false;
 
-        fbq('track', 'Contact',
-          { value: EVENT_VALUE, currency: CURRENCY },
-          { eventID: eventId }
-        );
+        // Intento estándar con fbq
+        try {
+          if (typeof fbq === 'function') {
+            fbq('track', 'Contact', {
+              value: EVENT_VALUE,
+              currency: CURRENCY,
+              content_name: 'WhatsApp CTA',
+              content_category: 'Lead'
+            }, { eventID: eventId });
+            usedFbq = true;
+          }
+        } catch (e) {
+          // seguirá al fallback
+        }
 
-        const index = obtenerIndiceActual();
-        const numero = numerosWhatsapp[index];
-        const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-        guardarSiguienteIndice(index);
-        window.open(url, '_blank');
-      });
+        // Fallback por imagen: garantiza request visible (Network → tr?)
+        if (!usedFbq) {
+          const img = new Image();
+          const params = new URLSearchParams({
+            id: pixelId,
+            ev: 'Contact',
+            dl: location.href,
+            rl: document.referrer || '',
+            if: 'false',
+            // custom_data
+            'cd[value]': String(EVENT_VALUE),
+            'cd[currency]': CURRENCY,
+            'cd[content_name]': 'WhatsApp CTA',
+            'cd[content_category]': 'Lead',
+            // dedupe opcional
+            'eid': eventId
+          });
+          img.src = 'https://www.facebook.com/tr?' + params.toString();
+          window.__lastFbPixelImage = img; // evita GC temprano
+        }
+
+        return usedFbq; // true = fbq; false = fallback
+      }
+
+      // ---------- Handler llamado por el onclick inline ----------
+      function sendContactEvent() {
+        // 1) Dispara el pixel (fbq o fallback)
+        fireContactPixel();
+
+        // 2) Pequeño delay para asegurar envío antes de abrir nueva pestaña
+        setTimeout(() => {
+          const index = obtenerIndiceActual();
+          const numero = numerosWhatsapp[index];
+          const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+          guardarSiguienteIndice(index);
+          window.open(url, '_blank');
+        }, 200); // 200–300ms recomendado
+
+        return false; // prevenir navegación del <a href="#">
+      }
     </script>
   </body>
 </html>
